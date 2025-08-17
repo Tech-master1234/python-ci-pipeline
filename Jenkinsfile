@@ -1,25 +1,21 @@
 pipeline {
-    agent any
-
-    stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/your-username/your-repo.git'
-            }
-        }
-
-    stage('Install Dependencies') {
-        steps {
-            sh '''
-            python3 -m venv venv
-            . venv/bin/activate
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r requirements.txt
-            '''
+    agent {
+        docker {
+            image 'python:3.10'   // Official Python image with pip preinstalled
         }
     }
 
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python -m venv venv
+                . venv/bin/activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                '''
+            }
+        }
 
         stage('Run Tests') {
             steps {
@@ -43,12 +39,6 @@ pipeline {
     post {
         always {
             junit 'test-results.xml'
-        }
-        success {
-            echo '✅ Build & tests passed!'
-        }
-        failure {
-            echo '❌ Build failed. Check logs!'
         }
     }
 }
